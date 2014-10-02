@@ -36,12 +36,13 @@ either expressed or implied, of the FreeBSD Project.
 hexbright hb;
 
 #define HOLD_TIME 250 // milliseconds before going to strobe
-#define OFF_TIME 650 // milliseconds before going off on the next normal button press
+#define OFF_TIME 2000 // milliseconds before going off on the next normal button press
 
-#define BRIGHTNESS_COUNT 4
-#define BRIGHTNESS_OFF BRIGHTNESS_COUNT-1
-int brightness[BRIGHTNESS_COUNT] = {1000, 600, 300, OFF_LEVEL};
-int current_brightness = BRIGHTNESS_OFF; // start on the last mode (off)
+int brightness[] = {OFF_LEVEL, 1, 260, 500, 750, 1000};
+#define BRIGHTNESS_OFF 0  // the index of OFF_LEVEL (be sure to update!)
+
+int current_brightness = BRIGHTNESS_OFF; // start with the LED off
+#define BRIGHTNESS_COUNT (sizeof(brightness) / sizeof(*brightness))
 
 unsigned long short_press_time = 0;
 
@@ -55,7 +56,7 @@ void loop() {
     
     if(hb.button_pressed_time()<HOLD_TIME) {
       // we just had a normal duration press
-      if(short_press_time+OFF_TIME<millis() && current_brightness!=BRIGHTNESS_OFF) {
+      if(short_press_time+OFF_TIME<millis() && brightness[current_brightness]!=OFF_LEVEL) {
         // it's been a while since our last button press, turn off
         current_brightness = BRIGHTNESS_OFF;
       } else {
