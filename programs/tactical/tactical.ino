@@ -38,7 +38,9 @@ hexbright hb;
 #define HOLD_TIME 250 // milliseconds before going to strobe
 #define OFF_TIME 2000 // milliseconds before going off on the next normal button press
 
-int brightness[] = {OFF_LEVEL, 1, 260, 500, 750, 1000};
+int           brightness[]      = { OFF_LEVEL,  1, 260, 500, 750, 1000 };
+unsigned char gled_brightness[] = {         0, 32, 255, 255, 255,  255 };
+long          transition_time[] = {       200,  0, 100, 100, 100,  100 };
 #define BRIGHTNESS_OFF 0  // the index of OFF_LEVEL (be sure to update!)
 
 int current_brightness = BRIGHTNESS_OFF; // start with the LED off
@@ -67,7 +69,19 @@ void loop() {
       // we have been doing strobe, set light at the previous light level (do nothing to current_brightness)
     }
     // actually change the brightness
-    hb.set_light(CURRENT_LEVEL, brightness[current_brightness], 50);
+    hb.set_light(CURRENT_LEVEL, brightness[current_brightness], transition_time[current_brightness]);
+    // Set rear green LED on with a timeout to indicate when a press will increase brightness
+    if ((current_brightness == BRIGHTNESS_OFF) || (current_brightness == BRIGHTNESS_COUNT - 1)) {
+      // We are off, or about to turn off
+      hb.set_led(
+        GLED, // Green LED
+        0, // Remain on for 0 ms (turn off)
+        100, // Wait time, using default from header
+        gled_brightness[current_brightness]); // Use appropriate brightness
+    } else {
+      // The next press increases brightness
+      hb.set_led(GLED, OFF_TIME, 100, gled_brightness[current_brightness]);
+    }
   } else if (hb.button_pressed() && hb.button_pressed_time()>HOLD_TIME) {
     // held for over HOLD_TIME ms, go to strobe
     static unsigned long flash_time = millis();
